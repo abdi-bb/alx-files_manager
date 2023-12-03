@@ -3,3 +3,4 @@ package*
 babel.config.js
 node_modules/
 main.js
+*.rdb
