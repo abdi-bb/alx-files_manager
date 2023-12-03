@@ -1,4 +1,3 @@
-// utils/db.js
 import { MongoClient } from 'mongodb';
 
 class DBClient {
@@ -28,14 +27,12 @@ class DBClient {
 
   // Get the number of documents in the users collection
   async nbUsers() {
-    const usersCollection = this.client.db().collection('users');
-    return usersCollection.countDocuments();
+    return this.client.db().collection('users').countDocuments();
   }
 
   // Get the number of documents in the files collection
   async nbFiles() {
-    const filesCollection = this.client.db().collection('files');
-    return filesCollection.countDocuments();
+    return filesCollection = this.client.db().collection('files').countDocuments();
   }
 }
 
