@@ -32,7 +32,7 @@ class DBClient {
 
   // Get the number of documents in the files collection
   async nbFiles() {
-    return filesCollection = this.client.db().collection('files').countDocuments();
+    return this.client.db().collection('files').countDocuments();
   }
 }
 
