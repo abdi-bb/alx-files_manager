@@ -1,46 +1,48 @@
-import dbClient from '../utils/db';
+import { ObjectId } from 'mongodb';
 import sha1 from 'sha1';
+import Queue from 'bull';
+import dbClient from '../utils/db';
+import userUtils from '../utils/user';
+
+const userQueue = new Queue('userQueue');
 
 class UsersController {
   // Other controller methods...
 
-  static async postNew(req, res) {
-    const { email, password } = req.body;
+  static async postNew(request, response) {
+    const { email, password } = request.body;
 
-    // Check if email and password are provided
-    if (!email) {
-      return res.status(400).json({ error: 'Missing email' });
+    if (!email) return response.status(400).send({ error: 'Missing email' });
+
+    if (!password) { return response.status(400).send({ error: 'Missing password' }); }
+
+    const emailExists = await dbClient.usersCollection.findOne({ email });
+
+    if (emailExists) { return response.status(400).send({ error: 'Already exist' }); }
+
+    const sha1Password = sha1(password);
+
+    let result;
+    try {
+      result = await dbClient.usersCollection.insertOne({
+        email,
+        password: sha1Password,
+      });
+    } catch (err) {
+      await userQueue.add({});
+      return response.status(500).send({ error: 'Error creating user.' });
     }
 
-    if (!password) {
-      return res.status(400).json({ error: 'Missing password' });
-    }
-
-    // Check if email already exists in the database
-    const existingUser = await dbClient.client.db().collection('users').findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Already exist' });
-    }
-
-    // Hash the password using SHA1
-    const hashedPassword = sha1(password);
-
-    // Create a new user
-    const newUser = {
-      email,
-      password: hashedPassword,
-    };
-
-    // Insert the new user into the database
-    const result = await dbClient.client.db().collection('users').insertOne(newUser);
-
-    // Return the new user with only the email and id
-    const responseUser = {
+    const user = {
       id: result.insertedId,
       email,
     };
 
-    return res.status(201).json(responseUser);
+    await userQueue.add({
+      userId: result.insertedId.toString(),
+    });
+
+    return response.status(201).send(user);
   }
 
 
