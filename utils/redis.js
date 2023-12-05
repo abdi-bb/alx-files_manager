@@ -1,7 +1,7 @@
 import { createClient } from 'redis';
 import { promisify } from 'util';
 
-// class to define methods for redis commands
+// class to define methods for commonly used redis commands
 class RedisClient {
   constructor() {
     this.client = createClient();
@@ -20,22 +20,22 @@ class RedisClient {
 
   // get value for given key from redis server
   async get(key) {
-    const getCommand = promisify(this.client.get).bind(this.client);
-    const value = await getCommand(key);
+    const redisGet = promisify(this.client.get).bind(this.client);
+    const value = await redisGet(key);
     return value;
   }
 
   // set key value pair to redis server
   async set(key, value, time) {
-    const setCommand = promisify(this.client.set).bind(this.client);
-    await setCommand(key, value);
+    const redisSet = promisify(this.client.set).bind(this.client);
+    await redisSet(key, value);
     await this.client.expire(key, time);
   }
 
-  // del key value pair from redis server
+  // del key vale pair from redis server
   async del(key) {
-    const delCommand = promisify(this.client.del).bind(this.client);
-    await delCommand(key);
+    const redisDel = promisify(this.client.del).bind(this.client);
+    await redisDel(key);
   }
 }
 
